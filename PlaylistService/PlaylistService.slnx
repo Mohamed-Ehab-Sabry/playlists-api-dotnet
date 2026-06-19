@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PlaylistService.Api/PlaylistService.Api.csproj" />
+  <Project Path="PlaylistService.Application/PlaylistService.Application.csproj" />
+  <Project Path="PlaylistService.Domain/PlaylistService.Domain.csproj" />
+  <Project Path="PlaylistService.Infrastructure/PlaylistService.Infrastructure.csproj" />
+</Solution>
