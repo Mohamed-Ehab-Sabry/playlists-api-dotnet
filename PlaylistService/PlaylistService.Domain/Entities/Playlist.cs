@@ -28,4 +28,12 @@ public class Playlist
         IsDeleted = true;
     }
 
+    public void AddSong(PlaylistSong playlistSong)
+    {
+        if (_playlistSongs.Any(ps => ps.SongId == playlistSong.SongId))
+            throw new InvalidOperationException($"Song already exists in this playlist.");
+
+        _playlistSongs.Add(playlistSong);
+    }
+
 }

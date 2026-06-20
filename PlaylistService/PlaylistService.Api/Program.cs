@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PlaylistService.Application.Interfaces;
 using PlaylistService.Infrastructure.Data;
 using PlaylistService.Infrastructure.Repositories;
+using PlaylistService.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite
 
 // Register the Repository
 builder.Services.AddScoped<IPlaylistRepository, PlaylistRepository>();
+
+// Register the Application Service
+builder.Services.AddScoped<IPlaylistAppService, PlaylistAppService>();
 
 var app = builder.Build();
 
