@@ -21,17 +21,18 @@ builder.Services.AddScoped<IPlaylistAppService, PlaylistAppService>();
 
 var app = builder.Build();
 
-// Seeding the database
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DbSeeder.SeedAsync(context);
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    // Seeding the database
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await context.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(context);
+
+
 }
 
 app.UseHttpsRedirection();

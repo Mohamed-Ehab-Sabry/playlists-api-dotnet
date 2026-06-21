@@ -28,11 +28,11 @@ public class PlaylistAppService : IPlaylistAppService
     {
         var playlist = await _repository.GetByIdAsync(playlistId);
         if (playlist == null)
-            throw new InvalidOperationException($"Playlist with ID {playlistId} not found.");
+            throw new KeyNotFoundException($"Playlist with ID {playlistId} not found.");
 
         var song = await _repository.GetSongByIdAsync(songId);
         if (song == null)
-            throw new InvalidOperationException($"Song with ID {songId} not found.");
+            throw new KeyNotFoundException($"Song with ID {songId} not found.");
 
         // Create the association through the domain constructor so the entity can keep its invariants encapsulated.
         var playlistSong = new PlaylistSong(playlistId, songId);

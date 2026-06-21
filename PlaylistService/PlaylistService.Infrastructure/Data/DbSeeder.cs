@@ -7,7 +7,7 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext context)
     {
-        if (await context.Songs.AnyAsync())
+        if (await context.Songs.IgnoreQueryFilters().AnyAsync())
         {
             return;
         }

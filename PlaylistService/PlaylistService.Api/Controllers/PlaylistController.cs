@@ -103,9 +103,13 @@ public class PlaylistsController : ControllerBase
             await _playlistAppService.AddSongToPlaylistAsync(id, request.SongId);
             return NoContent();
         }
-        catch (InvalidOperationException ex)
+        catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new {message = ex.Message});
         }
     }
 }
