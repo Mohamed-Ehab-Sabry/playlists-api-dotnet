@@ -3,4 +3,6 @@
   <Project Path="PlaylistService.Application/PlaylistService.Application.csproj" />
   <Project Path="PlaylistService.Domain/PlaylistService.Domain.csproj" />
   <Project Path="PlaylistService.Infrastructure/PlaylistService.Infrastructure.csproj" />
+  <Project Path="PlaylistService.IntegrationTests/PlaylistService.IntegrationTests.csproj" />
+  <Project Path="PlaylistService.UnitTests/PlaylistService.UnitTests.csproj" />
 </Solution>
