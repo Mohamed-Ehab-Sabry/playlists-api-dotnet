@@ -1,40 +1,189 @@
 # Playlist Service API
 
-A robust, highly scalable REST API built with ASP.NET 10 to manage user playlists and songs. This service is architected using **Clean Architecture** principles and the **SOLID** design philosophy to ensure maintainability, testability, and clear separation of concerns.
+A robust REST API built with **ASP.NET 10** to manage user playlists and songs. The service is architected using **Clean Architecture** principles and the **SOLID** design philosophy to ensure maintainability, testability, and clear separation of concerns.
+
+---
 
 ## 🏗️ Architecture Overview
 
-This project strictly adheres to Clean Architecture, dividing the system into four decoupled layers:
+The solution is split into four decoupled projects:
 
-* **1. Domain (`PlaylistService.Domain`)**
-  The core of the system. Contains enterprise-wide logic, fundamental entities (e.g., `Playlist`, `Song`), custom exceptions, and enums. It has **zero dependencies** on any other layer or external framework.
+| Layer | Project | Responsibility |
+|---|---|---|
+| Domain | `PlaylistService.Domain` | Entities, domain logic — zero external dependencies |
+| Application | `PlaylistService.Application` | Use-case orchestration, repository interfaces |
+| Infrastructure | `PlaylistService.Infrastructure` | EF Core `DbContext`, migrations, repository implementations |
+| API | `PlaylistService.Api` | Thin controllers, DTOs, DI wiring |
 
-* **2. Application (`PlaylistService.Application`)**
-  Contains the business logic and use cases. It defines interfaces (such as repository contracts) that the Infrastructure layer will implement. It only depends on the Domain layer.
-
-* **3. Infrastructure (`PlaylistService.Infrastructure`)**
-  Handles external concerns, primarily data access. This layer contains the Entity Framework Core `DbContext`, database migrations, and the concrete implementation of the repository interfaces defined in the Application layer.
-
-* **4. API (`PlaylistService.Api`)**
-  The presentation layer. It acts as the entry point for the system, exposing RESTful endpoints via Controllers. It is kept intentionally thin, delegating all business logic execution to the Application layer.
+---
 
 ## 🛠️ Tech Stack
 
-* **Framework:** .NET 10 (ASP.NET Core Web API)
-* **Architecture:** Clean Architecture / N-Tier
-* **Data Access:** Entity Framework Core (Relational SQL)
-* **Testing:** xUnit & Moq *(Planned)*
+| Concern | Choice | Reason |
+|---|---|---|
+| Framework | ASP.NET Core 10 | Latest LTS-aligned release; minimal API surface |
+| Database | **SQLite** (via EF Core) | Zero-config, single-file DB — ideal for portable assessment submission; swap to PostgreSQL/SQL Server by changing the connection string and provider package |
+| ORM | Entity Framework Core 10 | Code-first migrations, LINQ, strong .NET integration |
+| Testing | xUnit + Moq + FluentAssertions | Industry-standard unit + integration testing |
 
-## 🚀 Getting Started
+> **Why SQLite?** 
+> First of all, since the data is well-structured with known properties, a relational database is a natural fit. Because the business requires a quickly runnable, "anywhere" setup, SQLite was the go-to option. It requires no server installation, making the project runnable on any machine immediately after cloning—which directly satisfies the core requirement for this task. A better option for production would be MS SQL Server or PostgreSQL. However, because we utilized the Repository Pattern and EF Core abstractions, swapping to an enterprise database engine requires only a single configuration change, with zero impact on the business logic.
+---
+
+## 🚀 How to Run
 
 ### Prerequisites
-* [.NET 10 SDK](https://dotnet.microsoft.com/download)
-* Visual Studio Code (with C# Dev Kit) or Visual Studio 2022+
-* SQL Server or PostgreSQL *(Database configuration pending in Phase 2)*
 
-### Build Instructions
+| Tool | Version | Install |
+|---|---|---|
+| .NET SDK | **10.0** or later | https://dotnet.microsoft.com/download |
+| Git | Any recent version | https://git-scm.com |
 
-To build the solution and verify the dependency graph from the terminal, run the following command from the root directory:
+No database server, Docker, or IDE is required.
+
+---
+
+### Step 1 — Clone the repository
 
 ```bash
-dotnet build
+git clone <your-repo-url>
+cd playlists-api-dotnet/PlaylistService
+```
+
+---
+
+### Step 2 — Restore dependencies
+
+```bash
+dotnet restore
+```
+
+---
+
+### Step 3 — Run the API
+
+```bash
+dotnet run --project PlaylistService.Api
+```
+
+On first launch the application will:
+1. Create `playlist.db` (SQLite file) in the API project directory.
+2. Apply all EF Core migrations automatically (`Database.MigrateAsync`).
+3. Seed the database with sample songs via `DbSeeder`.
+
+The API will be available at:
+- **HTTP:** `http://localhost:5121`
+- **HTTPS:** `https://localhost:7263`
+- **OpenAPI spec:** `http://localhost:5121/openapi/v1.json` *(Development only)*
+
+---
+
+### Step 4 — Make your first request
+
+The API uses a `UserId` HTTP header to identify the caller (simulating auth without a full auth server).
+
+**Create a playlist:**
+
+```bash
+curl -X POST http://localhost:5121/api/playlists \
+  -H "Content-Type: application/json" \
+  -H "UserId: 00000000-0000-0000-0000-000000000001" \
+  -d '{"name": "My First Playlist"}'
+```
+
+**Fetch playlists:**
+
+```bash
+curl http://localhost:5121/api/playlists \
+  -H "UserId: 00000000-0000-0000-0000-000000000001"
+```
+
+**Add a song** (use a real Song ID returned by the seeder, or check the DB):
+
+```bash
+curl -X POST http://localhost:5121/api/playlists/{playlistId}/songs \
+  -H "Content-Type: application/json" \
+  -H "UserId: 00000000-0000-0000-0000-000000000001" \
+  -d '{"songId": "<song-guid-here>"}'
+```
+
+**Update playlist name:**
+
+```bash
+curl -X PATCH http://localhost:5121/api/playlists/{playlistId} \
+  -H "Content-Type: application/json" \
+  -H "UserId: 00000000-0000-0000-0000-000000000001" \
+  -d '{"name": "Renamed Playlist"}'
+```
+
+**Delete a playlist:**
+
+```bash
+curl -X DELETE http://localhost:5121/api/playlists/{playlistId} \
+  -H "UserId: 00000000-0000-0000-0000-000000000001"
+```
+
+**Remove a song from a playlist:**
+
+```bash
+curl -X DELETE http://localhost:5121/api/playlists/{playlistId}/songs/{songId} \
+  -H "UserId: 00000000-0000-0000-0000-000000000001"
+```
+
+---
+
+### Step 5 — Run the tests
+
+**Unit tests** (no network or DB required):
+
+```bash
+dotnet test PlaylistService.UnitTests
+```
+
+**Integration tests** (spins up an in-process test server using `WebApplicationFactory`):
+
+```bash
+dotnet test PlaylistService.IntegrationTests
+```
+
+**All tests at once:**
+
+```bash
+dotnet test
+```
+
+---
+
+### Resetting the database
+
+Simply delete `PlaylistService.Api/playlist.db` and restart the API — migrations and seeding run automatically.
+
+---
+
+## 📡 API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/playlists` | Create a new playlist |
+| `GET` | `/api/playlists` | Get all playlists for the calling user |
+| `PATCH` | `/api/playlists/{id}` | Update the name of a playlist |
+| `DELETE` | `/api/playlists/{id}` | Soft-delete a playlist |
+| `POST` | `/api/playlists/{id}/songs` | Add a song to a playlist |
+| `DELETE` | `/api/playlists/{id}/songs/{songId}` | Remove a song from a playlist |
+
+All endpoints require the `UserId` header (a valid GUID).
+
+---
+
+## 🗂️ Project Structure
+
+```
+PlaylistService/
+├── PlaylistService.Api/             # Controllers, DTOs, Program.cs
+├── PlaylistService.Application/     # Interfaces, use-case services
+├── PlaylistService.Domain/          # Entities, domain rules
+├── PlaylistService.Infrastructure/  # EF Core, migrations, repositories
+├── PlaylistService.UnitTests/       # xUnit + Moq unit tests
+├── PlaylistService.IntegrationTests/# xUnit + WebApplicationFactory tests
+└── PlaylistService.slnx             # Solution file
+```
