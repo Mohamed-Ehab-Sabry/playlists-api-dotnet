@@ -21,6 +21,13 @@ builder.Services.AddScoped<IPlaylistAppService, PlaylistAppService>();
 
 var app = builder.Build();
 
+// Seeding the database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DbSeeder.SeedAsync(context);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
