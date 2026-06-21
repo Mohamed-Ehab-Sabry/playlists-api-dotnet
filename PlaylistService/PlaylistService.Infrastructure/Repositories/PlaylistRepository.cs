@@ -26,8 +26,16 @@ public class PlaylistRepository : IPlaylistRepository
         return await _context.Playlists.Include(p => p.PlaylistSongs).FirstOrDefaultAsync(p => p.Id == id);
     }
 
+    public async Task<Playlist?> GetByIdAndUserIdAsync(Guid id, Guid userId)
+    {
+        return await _context.Playlists
+            .Include(p => p.PlaylistSongs)
+            .ThenInclude(ps => ps.Song)
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+    }
+
     public async Task<IEnumerable<Playlist>> GetUserPlaylistsAsync(Guid userId)
-    { 
+    {
         return await _context.Playlists
         .Include(p => p.PlaylistSongs)
         .ThenInclude(ps => ps.Song)

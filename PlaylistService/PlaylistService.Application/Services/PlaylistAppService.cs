@@ -24,23 +24,24 @@ public class PlaylistAppService : IPlaylistAppService
     /// <summary>
     /// Adds a song to an existing playlist.
     /// </summary>
-    public async Task AddSongToPlaylistAsync(Guid playlistId, Guid songId)
+    public async Task AddSongToPlaylistAsync(Guid playlistId, Guid userId, Guid songId)
     {
-        var playlist = await _repository.GetByIdAsync(playlistId);
+        var playlist = await _repository.GetByIdAndUserIdAsync(playlistId, userId);
         if (playlist == null)
-            throw new KeyNotFoundException($"Playlist with ID {playlistId} not found.");
+        {
+            throw new InvalidOperationException("Playlist not found or does not belong to the current user.");
+        }
 
         var song = await _repository.GetSongByIdAsync(songId);
         if (song == null)
-            throw new KeyNotFoundException($"Song with ID {songId} not found.");
+        {
+            throw new InvalidOperationException("Song not found.");
+        }
 
-        // Create the association through the domain constructor so the entity can keep its invariants encapsulated.
-        var playlistSong = new PlaylistSong(playlistId, songId);
-        playlist.AddSong(playlistSong);
+        playlist.AddSong(songId);
 
         await _repository.UpdateAsync(playlist);
     }
-
     /// <summary>
     /// Retrieves all playlists for a specific user.
     /// </summary>

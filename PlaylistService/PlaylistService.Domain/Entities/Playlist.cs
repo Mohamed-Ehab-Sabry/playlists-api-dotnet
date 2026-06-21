@@ -23,17 +23,18 @@ public class Playlist
         IsDeleted = false;
     }
 
+    public void AddSong(Guid songId)
+    {
+        if (_playlistSongs.Any(ps => ps.SongId == songId))
+        {
+            throw new KeyNotFoundException("Song is already in this playlist.");
+        }
+
+        _playlistSongs.Add(new PlaylistSong(Id, songId));
+    }
+
     public void SoftDelete()
     {
         IsDeleted = true;
     }
-
-    public void AddSong(PlaylistSong playlistSong)
-    {
-        if (_playlistSongs.Any(ps => ps.SongId == playlistSong.SongId))
-            throw new InvalidOperationException($"Song already exists in this playlist.");
-
-        _playlistSongs.Add(playlistSong);
-    }
-
 }

@@ -98,18 +98,20 @@ public class PlaylistsController : ControllerBase
     [HttpPost("{id}/songs")]
     public async Task<IActionResult> AddSongToPlaylist(Guid id, [FromBody] AddSongRequest request)
     {
+        var userIdHeader = Request.Headers["UserId"].ToString();
+        if (!Guid.TryParse(userIdHeader, out var userId))
+        {
+            return BadRequest("Invalid or missing UserId header.");
+        }
+
         try
         {
-            await _playlistAppService.AddSongToPlaylistAsync(id, request.SongId);
+            await _playlistAppService.AddSongToPlaylistAsync(id, userId, request.SongId);
             return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new {message = ex.Message});
+            return NotFound(new { message = ex.Message });
         }
     }
 }

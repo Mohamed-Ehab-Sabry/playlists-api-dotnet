@@ -9,6 +9,8 @@ public interface IPlaylistRepository
 
     // Fetch operations
     Task<Playlist?> GetByIdAsync(Guid id);
+    Task<Playlist?> GetByIdAndUserIdAsync(Guid id, Guid userId);
+
     Task<IEnumerable<Playlist>> GetUserPlaylistsAsync(Guid userId);
     Task<Song?> GetSongByIdAsync(Guid songId);
 
