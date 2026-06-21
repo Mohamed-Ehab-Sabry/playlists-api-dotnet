@@ -1,4 +1,3 @@
-
 using System.Data;
 
 namespace PlaylistService.Domain.Entities;
@@ -31,6 +30,35 @@ public class Playlist
         }
 
         _playlistSongs.Add(new PlaylistSong(Id, songId));
+    }
+
+    /// <summary>
+    /// Removes a song from this playlist.
+    /// </summary>
+    /// <exception cref="KeyNotFoundException">Thrown when the song is not in the playlist.</exception>
+    public void RemoveSong(Guid songId)
+    {
+        var entry = _playlistSongs.FirstOrDefault(ps => ps.SongId == songId);
+        if (entry is null)
+        {
+            throw new KeyNotFoundException("Song is not in this playlist.");
+        }
+
+        _playlistSongs.Remove(entry);
+    }
+
+    /// <summary>
+    /// Updates the playlist's display name.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the new name is null or whitespace.</exception>
+    public void UpdateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Playlist name cannot be empty.", nameof(name));
+        }
+
+        Name = name;
     }
 
     public void SoftDelete()
